@@ -1,0 +1,396 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.applet.*;
+import java.net.*;
+import java.io.*;
+import java.util.*;
+import javax.swing.*;
+import java.lang.String;
+import javax.swing.border.*;
+public class tovar extends Applet{
+TextField txtNaim,txtCena,txtEdIz,txtDel;
+Label lbNaim,lbCena,lbEdIz;
+TextArea txta;
+Choice nsot;
+Choice nkont;
+Button btnGetText,btnAdd,btnDel;
+public void init()
+{setLayout(new GridLayout(5,1));
+Panel Panel1 = new Panel();
+lbNaim = new Label("Vvedite naimenovanie:");
+Panel1.add(lbNaim);
+txtNaim = new TextField("", 40);
+Panel1.add(txtNaim);
+add(Panel1);
+Panel Panel2 = new Panel();
+lbCena = new Label("Vvedite cenu:");
+Panel2.add(lbCena);
+txtCena = new TextField("", 12);
+Panel2.add(txtCena);
+lbEdIz = new Label("Vvedite Edenicu izmerenija:");
+Panel2.add(lbEdIz);
+txtEdIz = new TextField("", 12);
+Panel2.add(txtEdIz);
+add(Panel2);
+Panel Panel4 = new Panel();
+nsot = new Choice();
+Label lbsot = new Label("Sotrudnik, prin. tovar:");
+Panel4.add(lbsot);
+Panel4.add(nsot);
+sotr();
+add(Panel2);
+Panel Panel5 = new Panel();
+nkont = new Choice();
+Label lbkont = new Label("Kontragent:");
+Panel5.add(lbkont);
+Panel5.add(nkont);
+Label lbdel = new Label("Vvedite Nomer tovara dlja udalenija:");
+Panel5.add(lbdel);
+txtDel = new TextField("", 4);
+Panel5.add(txtDel);
+kont();
+add(Panel5);
+Panel Panel6 = new Panel();
+btnGetText = new Button("Просмотр");
+Panel6.add(btnGetText);
+btnAdd = new Button("Добавить");
+Panel6.add(btnAdd);
+btnDel = new Button("Удалить");
+Panel6.add(btnDel);
+add(Panel6);
+txta = new TextArea();
+add(txta);
+setBackground(Color.lightGray);
+}
+public void paint(Graphics g)
+{ setBackground(Color.lightGray);
+Dimension dimAppWndDimension = getSize();
+g.setColor(Color.black);
+g.drawRect(0, 0, dimAppWndDimension.width - 1, dimAppWndDimension.height - 1);
+}
+public boolean action(Event evt, Object obj)
+{ Button btn;
+if(evt.target instanceof Button)
+{ btn = (Button)evt.target;
+if(evt.target.equals(btnGetText))
+{ run();}
+else{if(evt.target.equals(btnAdd))
+{ runAdd();}
+else
+if(evt.target.equals(btnDel))
+{ runDel();}
+else
+return false; }
+return true;}
+return false;
+}
+public void run(){
+try{
+URL url = new URL("http://localhost/cgi-bin/tovar.exe");
+URLConnection uc = url.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setUseCaches(false);
+uc.setAllowUserInteraction(true);
+uc.connect();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{ StringTokenizer st = new StringTokenizer(nextline, "&");
+while(st.hasMoreTokens())
+{ txta.appendText(st.nextToken());
+txta.appendText("\n"); }
+}
+repaint();
+} catch (Exception e){}
+}
+public void runAdd(){
+try{ String Kod;
+txtNaim.setText(nsot.getSelectedItem());
+Kod = txtNaim.getText()+','+txtCena.getText()+','+ txtEdIz.getText()+','+nsot.getSelectedItem()+','+nkont.getSelectedItem()+',';
+URL u = new URL("http://localhost/cgi-bin/Addtovar.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataOutputStream dos=new DataOutputStream(uc.getOutputStream());
+dos.writeBytes(Kod);
+dos.close();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{ txta.appendText(nextline + "\r\n"); txtNaim.setText(""); txtCena.setText(""); txtEdIz.setText("");}
+repaint();
+} catch (Exception e){}
+}
+public void runDel(){
+try{ String Kod;
+Kod = txtDel.getText()+',';
+URL u = new URL("http://localhost/cgi-bin/Deltovar.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataOutputStream dos=new DataOutputStream(uc.getOutputStream());
+dos.writeBytes(Kod);
+dos.close();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{txta.appendText(nextline + "\r\n");
+txtDel.setText(""); }
+repaint();
+} catch (Exception e){}}
+public void sotr()
+{ try
+{ URL u = new URL("http://localhost/cgi-bin/getsotr.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+StringTokenizer st;
+while ((nextline = dis.readLine())!=null)
+{ st = new StringTokenizer(nextline, "&");
+while(st.hasMoreTokens())
+{ nsot.add(st.nextToken()); } }}
+catch (Exception e){}
+}
+public void kont()
+{ try
+{URL u = new URL("http://localhost/cgi-bin/getkont.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+StringTokenizer st;
+while ((nextline = dis.readLine())!=null)
+{ st = new StringTokenizer(nextline, "&");
+while(st.hasMoreTokens())
+{ nkont.add(st.nextToken());
+} }
+}
+catch (Exception e){}
+}}
+Апплет для просмотра, добавления, модификации и удаления сотрудников - «sotrudnik».
+import java.awt.*;
+import java.awt.List;
+import java.applet.*;
+import java.net.*;
+import java.util.*;
+import java.io.*;
+import java.net.MalformedURLException;
+import javax.swing.*;
+public class sotrudnik extends Applet{
+TextField txtpass,txtfio,txtdol,txttel,txtinn,txtDel;
+Label lbpass,lbfio,lbdol,lbtel,lbinn;
+TextArea txta;
+Button btnGetText,btnAdd,btnDel,btnEdit;
+public void init()
+{setLayout(new GridLayout(5,1));
+Panel Panel1 = new Panel();
+lbpass = new Label("Vvedite #Passporta:");
+Panel1.add(lbpass);
+txtpass = new TextField("", 40);
+Panel1.add(txtpass);
+lbfio = new Label("Vvedite FIO:");
+Panel1.add(lbfio);
+txtfio = new TextField("", 25);
+Panel1.add(txtfio);
+add(Panel1);
+Panel Panel2 = new Panel();
+lbdol = new Label("Vvedite dolzhnost:");
+Panel2.add(lbdol);
+txtdol = new TextField("", 12);
+Panel2.add(txtdol);
+lbtel = new Label("Vvedite Tel. sotrudnika:");
+Panel2.add(lbtel);
+txttel = new TextField("", 12);
+Panel2.add(txttel);
+add(Panel2);
+Panel Panel3 = new Panel();
+lbinn = new Label("Vvedite Inn:");
+Panel2.add(lbinn);
+txtinn = new TextField("", 12);
+Panel2.add(txtinn);
+add(Panel3);
+Panel Panel4 = new Panel();
+btnGetText = new Button("Просмотр");
+Panel4.add(btnGetText);
+btnAdd = new Button("Добавить");
+Panel4.add(btnAdd);
+btnEdit = new Button("Изменить");
+Panel4.add(btnEdit);
+btnDel = new Button("Удалить");
+Panel4.add(btnDel);
+txtDel = new TextField("", 4);
+Panel4.add(txtDel);
+add(Panel4);
+txta = new TextArea();
+add(txta);
+setBackground(Color.lightGray);
+}
+public void paint(Graphics g)
+{ setBackground(Color.lightGray);
+Dimension dimAppWndDimension = getSize();
+g.setColor(Color.black);
+g.drawRect(0, 0, dimAppWndDimension.width - 1, dimAppWndDimension.height - 1);
+}
+public boolean action(Event evt, Object obj)
+{ Button btn;
+if(evt.target instanceof Button)
+{ btn = (Button)evt.target;
+if(evt.target.equals(btnGetText))
+{ run(); }
+else{if(evt.target.equals(btnAdd))
+{ runAdd(); }
+else
+if(evt.target.equals(btnDel))
+{ runDel();}
+else
+if(evt.target.equals(btnEdit))
+{ runEdit();}
+else
+return false;}
+return true; }
+return false;
+}
+public void run(){
+try{
+URL url = new URL("http://localhost/cgi-bin/sotrud.exe");
+URLConnection uc = url.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setUseCaches(false);
+uc.setAllowUserInteraction(true);
+uc.connect();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{ StringTokenizer st = new StringTokenizer(nextline, "&");
+while(st.hasMoreTokens())
+{ txta.appendText(st.nextToken());
+txta.appendText("\n");}
+}
+repaint();
+} catch (Exception e){}
+}
+public void runAdd(){
+try{ String Kod;
+Kod = txtpass.getText()+','+txtfio.getText()+','+ txtdol.getText()+','+ txttel.getText()+','+ txtinn.getText()+',';
+URL u = new URL("http://localhost/cgi-bin/Addsotr.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataOutputStream dos=new DataOutputStream(uc.getOutputStream());
+dos.writeBytes(Kod);
+dos.close();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{ txta.appendText(nextline + "\r\n");
+txtpass.setText(""); txtfio.setText(""); txtdol.setText(""); txttel.setText(""); txtinn.setText(""); }
+repaint();
+} catch (Exception e){}
+}
+public void runEdit(){
+try{ String Kod;
+Kod = txtpass.getText()+','+txtfio.getText()+','+ txtdol.getText()+','+ txttel.getText()+','+ txtinn.getText()+',';
+URL u = new URL("http://localhost/cgi-bin/Editsotr.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataOutputStream dos=new DataOutputStream(uc.getOutputStream());
+dos.writeBytes(Kod);
+dos.close();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{ txta.appendText(nextline + "\r\n");
+txtpass.setText(""); txtfio.setText(""); txtdol.setText(""); txttel.setText(""); txtinn.setText("");
+}
+repaint();
+} catch (Exception e){}
+}
+public void runDel(){
+try{ String Kod;
+Kod = txtDel.getText()+',';
+URL u = new URL("http://localhost/cgi-bin/Delsotr.exe");
+URLConnection uc = u.openConnection();
+uc.setDoOutput(true);
+uc.setDoInput(true);
+uc.setAllowUserInteraction(true);
+DataOutputStream dos=new DataOutputStream(uc.getOutputStream());
+dos.writeBytes(Kod);
+dos.close();
+DataInputStream dis=new DataInputStream(uc.getInputStream());
+String nextline;
+while ((nextline = dis.readLine())!=null)
+{ txta.appendText(nextline + "\r\n");
+txtDel.setText(""); }
+repaint();
+} catch (Exception e){}
+}}
+Апплет для просмотра, добавления, модификации и удаления контрагентов - «kontr».
+import java.awt.*;
+import java.applet.*;
+import java.net.*;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.util.*;
+import javax.swing.*;
+public class kontr extends Applet{
+TextField txtkk,txtnorg,txtfio,txttel,txtadr,txtDel;
+Label lbkk,lbfio,lbnorg,lbtel,lbadr;
+TextArea txta;
+Button btnGetText,btnAdd,btnDel,btnEdit;
+public void init()
+{setLayout(new GridLayout(5,1));
+Panel Panel1 = new Panel();
+lbkk = new Label("Vvedite Kod Kontr:");
+Panel1.add(lbkk);
+txtkk = new TextField("", 40);
+Panel1.add(txtkk);
+lbnorg = new Label("Vvedite Naim Org:");
+Panel1.add(lbnorg);
+txtnorg = new TextField("", 25);
+Panel1.add(txtnorg);
+add(Panel1);
+Panel Panel2 = new Panel();
+lbfio = new Label("Vvedite FIO kontragenta:");
+Panel2.add(lbfio);
+txtfio = new TextField("", 12);
+Panel2.add(txtfio);
+lbtel = new Label("Vvedite Tel. Org:");
+Panel2.add(lbtel);
+txttel = new TextField("", 12);
+Panel2.add(txttel);
+add(Panel2);
+Panel Panel3 = new Panel();
+lbadr = new Label("Vvedite Adres:");
+Panel2.add(lbadr);
+txtadr = new TextField("", 12);
+Panel2.add(txtadr);
+add(Panel3);
+Panel Panel4 = new Panel();
+btnGetText = new Button("Просмотр");
+Panel4.add(btnGetText);
+btnAdd = new Button("Добавить");
+Panel4.add(btnAdd);
+btnEdit = new Button("Изменить");
+Panel4.add(btnEdit);
+btnDel = new Button("Удалить");
+Panel4.add(btnDel);
+txtDel = new TextField("", 4);
+Panel4.add(txtDel);
+add(Panel4);
+txta = new TextArea();
+add(txta);
+setBackground(Color.lightGray);
+}
+
